@@ -1,4 +1,4 @@
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE, messages=FALSE}
 knitr::opts_chunk$set(  echo=TRUE, eval=FALSE)
 library(mgcv)
 library(tidyverse)
@@ -19,17 +19,28 @@ and an external estimate of our market share to estimate the overall
 size of the market.
 
 ```{r eval=TRUE, echo=FALSE}
-ms <- read.delim("browser-ww-monthly-200901-201910.csv", header=TRUE, sep=",")
-mau <- read.delim("mau-reduced.csv", header=TRUE, sep=",")
-df <- data.frame(date=as.Date(mau$day,"%Y-%m-%d"), share=ms$Firefox/100, mau=mau$mau)
-df <- filter(df, df$date >= as.Date("2017-01-01"))
+ms.ww <- fread("browser-ww-monthly-200901-201910-first.csv")[,date:=as.Date(Date)]
+ms.us <- fread("browser-us-monthly-200901-201910-first.csv")[,date:=as.Date(Date)]
+mau <- fread("Desktop_MAU_in_US_and_ROW_2019_11_22-first.csv")[,date := as.Date(date)]
+# Trim these to the same dates
+ms.ww <- ms.ww[date >= min(mau$date)]
+ms.us <- ms.us[date >= min(mau$date)]
+mau <- mau[date <= max(ms.ww$date)]
+
+df.ww <- data.table(date = ms.ww$date, mau = mau$mau_row + mau$mau_us, share = ms.ww$Firefox)
+df.us <- data.table(date = ms.us$date, mau = mau$mau_us, share = ms.us$Firefox)
+```
+
+```{r eval=TRUE, echo=FALSE}
+df <- df.ww
+
 df$size <- df$mau/df$share
 df$mau.normal <- df$mau/df$mau[1]
 df$share.normal <- df$share/df$share[1]
 df.long <- gather(df, key="Source", value="Frac", mau.normal, share.normal)
-size <- df$size
-s1 <- size[1]
-```
+ ```
+
+## Worldwide Market Size
 
 Fhe following figure shows the decline of MAU and market share over
 the 2 years ending in January 2019. The MAU data comes from our
@@ -56,3 +67,39 @@ the market is growing.
 ```{r eval=TRUE,fig.width=6, fig.height=4, echo=FALSE}
 ggplot(df) + geom_line(mapping=aes(x=date, y=size))
 ```
+
+## US Market Size
+
+
+Here is the same treatment for the US, which shows the market size
+as approximately flat at ~400 million users.
+
+
+```{r eval=TRUE, echo=FALSE}
+df <- df.us
+
+df$size <- df$mau/df$share
+df$mau.normal <- df$mau/df$mau[1]
+df$share.normal <- df$share/df$share[1]
+df.long <- gather(df, key="Source", value="Frac", mau.normal, share.normal)
+ ```
+
+
+```{r eval=TRUE,fig.width=6, fig.height=4, echo=FALSE}
+ggplot(df.long) + geom_line(mapping=aes(x=date, y=Frac, color=Source))
+```
+
+```{r eval=TRUE,fig.width=6, fig.height=4, echo=FALSE}
+ggplot(df) + geom_line(mapping=aes(x=date, y=size))
+```
+
+
+# Sanity Check
+
+There are a lot of potential sources of noise in this data. As a sanity
+check, let's compare the US data to an independent source, which is the
+installed base of desktop and laptops in the US from Statista. [https://www.statista.com/statistics/670172/united-states-installed-base-desktops-laptops-tablets/]. This shows the market as being nearly flat
+at around 310 million for the past few years, projecting to be 305
+million in 2022.
+
+![US Desktop and Laptop Market Size (Statista)](statista-market-size.png)
