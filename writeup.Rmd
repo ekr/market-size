@@ -22,6 +22,7 @@ size of the market.
 ms <- read.delim("browser-ww-monthly-200901-201910.csv", header=TRUE, sep=",")
 mau <- read.delim("mau-reduced.csv", header=TRUE, sep=",")
 df <- data.frame(date=as.Date(mau$day,"%Y-%m-%d"), share=ms$Firefox/100, mau=mau$mau)
+df <- filter(df, df$date >= as.Date("2017-01-01"))
 df$size <- df$mau/df$share
 df$mau.normal <- df$mau/df$mau[1]
 df$share.normal <- df$share/df$share[1]
