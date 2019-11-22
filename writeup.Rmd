@@ -27,6 +27,8 @@ df$size <- df$mau/df$share
 df$mau.normal <- df$mau/df$mau[1]
 df$share.normal <- df$share/df$share[1]
 df.long <- gather(df, key="Source", value="Frac", mau.normal, share.normal)
+size <- df$size
+s1 <- size[1]
 ```
 
 Fhe following figure shows the decline of MAU and market share over
@@ -37,16 +39,20 @@ Note that market share is declining faster than MAU, though
 clearly something is wrong with the beginning of the MAU series.
 
 
-```{r eval=TRUE,fig.width=6, fig.height=4}
+```{r eval=TRUE,fig.width=6, fig.height=4, echo=FALSE}
 ggplot(df.long) + geom_line(mapping=aes(x=date, y=Frac, color=Source))
 ```
 
 We can get an estimate of the size of the market by dividing MAU
 by our share of the market, giving us the graph below. Based on
 this data, desktop market size has actually increased over
-this period.
+this period, from about 2 billion to about 3 billion. These numbers
+do seem fairly high, but it's a straightforward calculation,
+and we just need to assume that there's no systematic bias
+in either of these measurements, then it would appear that
+the market is growing.
 
 
-```{r eval=TRUE,fig.width=6, fig.height=4}
+```{r eval=TRUE,fig.width=6, fig.height=4, echo=FALSE}
 ggplot(df) + geom_line(mapping=aes(x=date, y=size))
 ```
