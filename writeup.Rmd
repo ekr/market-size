@@ -1,0 +1,51 @@
+```{r, echo=FALSE}
+knitr::opts_chunk$set(  echo=TRUE, eval=FALSE)
+library(mgcv)
+library(tidyverse)
+library(brms);library(ggplot2);library(scales)
+library(data.table)
+library(directlabels)
+```
+
+# Estimating Desktop Browser Market Size
+
+Desktop Firefox has been losing users for the past few years and we
+have also been losing market share. We've generally attributed this to
+a combination of Chrome taking our users and the generally declining
+state of the desktop market.
+
+We can use the combination of our user numbers (MAU), which we know,
+and an external estimate of our market share to estimate the overall
+size of the market.
+
+```{r eval=TRUE, echo=FALSE}
+ms <- read.delim("browser-ww-monthly-200901-201910.csv", header=TRUE, sep=",")
+mau <- read.delim("mau-reduced.csv", header=TRUE, sep=",")
+df <- data.frame(date=as.Date(mau$day,"%Y-%m-%d"), share=ms$Firefox/100, mau=mau$mau)
+df$size <- df$mau/df$share
+df$mau.normal <- df$mau/df$mau[1]
+df$share.normal <- df$share/df$share[1]
+df.long <- gather(df, key="Source", value="Frac", mau.normal, share.normal)
+```
+
+Fhe following figure shows the decline of MAU and market share over
+the 2 years ending in January 2019. The MAU data comes from our
+own telemetry and the market share data comes from StatCounter.
+Each of these is normalized to the start of the period. 
+Note that market share is declining faster than MAU, though
+clearly something is wrong with the beginning of the MAU series.
+
+
+```{r eval=TRUE,fig.width=6, fig.height=4}
+ggplot(df.long) + geom_line(mapping=aes(x=date, y=Frac, color=Source))
+```
+
+We can get an estimate of the size of the market by dividing MAU
+by our share of the market, giving us the graph below. Based on
+this data, desktop market size has actually increased over
+this period.
+
+
+```{r eval=TRUE,fig.width=6, fig.height=4}
+ggplot(df) + geom_line(mapping=aes(x=date, y=size))
+```
