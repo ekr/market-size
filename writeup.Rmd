@@ -42,13 +42,11 @@ df.long <- gather(df, key="Source", value="Frac", mau.normal, share.normal)
 
 ## Worldwide Market Size
 
-Fhe following figure shows the decline of MAU and market share over
-the 2 years ending in January 2019. The MAU data comes from our
+Fhe following figure shows the decline of MAU and market share from
+the period of 2016-04-01 to 2019-10-01. The MAU data comes from our
 own telemetry and the market share data comes from StatCounter.
 Each of these is normalized to the start of the period. 
-Note that market share is declining faster than MAU, though
-clearly something is wrong with the beginning of the MAU series.
-
+Note that market share is declining faster than MAU.
 
 ```{r eval=TRUE,fig.width=6, fig.height=4, echo=FALSE}
 ggplot(df.long) + geom_line(mapping=aes(x=date, y=Frac, color=Source))
@@ -100,6 +98,7 @@ There are a lot of potential sources of noise in this data. As a sanity
 check, let's compare the US data to an independent source, which is the
 installed base of desktop and laptops in the US from Statista. [https://www.statista.com/statistics/670172/united-states-installed-base-desktops-laptops-tablets/]. This shows the market as being nearly flat
 at around 310 million for the past few years, projecting to be 305
-million in 2022.
+million in 2022, so at least we are on the same order of
+magnitude.
 
 ![US Desktop and Laptop Market Size (Statista)](statista-market-size.png)
