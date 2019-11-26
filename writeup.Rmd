@@ -118,6 +118,14 @@ ggplot(df) + geom_line(mapping=aes(x=date, y=size))
 
 ## NetMarketShare
 
+StatCounter is not the only source of market share data. This section runs
+the same analysis for worldwide data pulled from NetMarketShare. I was
+unable to get it to download a CSV, so I hand-transcribed it from their
+dashboard, which shows values if you hover over the points. This may
+have resulted in transcription errors and we should arrange to get
+machine readable data.
+
+
 ```{r eval=TRUE, echo=TRUE}
 df <- df.nm
 
