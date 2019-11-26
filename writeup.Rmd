@@ -127,7 +127,9 @@ df$share.normal <- df$share/df$share[1]
 df.long <- gather(df, key="Source", value="Frac", usage.normal, share.normal)
 
 res.nm <- df
- ```
+print(res.nm)
+print(res.ww)
+```
 
 
 ```{r eval=TRUE,fig.width=6, fig.height=4, echo=TRUE}
@@ -172,16 +174,21 @@ Because ADI is an unsmoothed value, we take the arithmetic mean of
 ADI for each month. As before, we attribute it to the first day of
 the month.
 
+*TECHNICAL NOTE*: The netmarket share data is normalized against its first
+appearance, in June 2016, one month later than the MAU series.
 
 ```{r eval=TRUE, echo=TRUE}
 res.ww$size.normal <- res.ww$size/res.ww$size[1]
 res.us$size.normal <- res.us$size/res.us$size[1]
 res.adi$size.normal <- res.adi$size/(res.adi[date == min(res.ww$date)]$size[1])
-res.ww$series <- "ww"
-res.us$series <- "us"
-res.adi$series <- "adi"
-
-res <- rbind(res.ww, res.us, res.adi)
+res.nm$size.normal <- res.nm$size/res.nm$size[1]
+res.ww$series <- "WW MAU (StatCounter)"
+res.us$series <- "US MAU (StatCounter)"
+res.adi$series <- "ADI (StatCounter)"
+res.nm$series <- "WW MAU (NetMarketShare)"
+print(names(res.nm))
+print(names(res.ww))
+res <- rbind(res.ww, res.us, res.nm, res.adi)
 ```
 
 ```{r eval=TRUE,fig.width=6, fig.height=4, echo=TRUE}
@@ -198,8 +205,9 @@ spikes adound the beginning of 2019. These reflect two big negative
 spikes in market share around the same time, so may be measurement
 error in the market share estimates, and in any case will recur for
 any absolute usage series we run against these market share
-numbers. We should look to rerun this data with a different source of
-data, such as NetMarketShare.
+numbers. The NetMarketShare data does not show these big spikes
+but overall tells a very similar picture to that for the
+StatCounter WW data.
 
 In general, this is a somewhat surprising result as we had expected
 the desktop market to be generally flat to in decline, and so more
