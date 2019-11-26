@@ -1,4 +1,4 @@
-```{r, echo=FALSE, warning=FALSE, messages=FALSE}
+```{r, echo=TRUE, warning=FALSE, messages=FALSE}
 knitr::opts_chunk$set(  echo=TRUE, eval=FALSE)
 library(mgcv)
 library(tidyverse)
@@ -16,13 +16,23 @@ state of the desktop market.
 
 We can use the combination of our user numbers (MAU), which we know,
 and an external estimate of our market share to estimate the overall
-size of the market.
+size of the market. We have MAU values for each day of the month, but
+market share only for a month as a whole. As an approximation, we
+take the MAU value for the last day of the month and attribute it to
+the month as a whole.
 
-```{r eval=TRUE, echo=FALSE}
+*TECHNICAL NOTE:* In the current version of this code, we actually
+assign all these values to the first day of the month rather than
+the last, which means that all the graphs are actually off by a
+month or so. This doesn't affect the general trend, but I need
+to write some code to fix it.
+
+
+```{r eval=TRUE, echo=TRUE}
 ms.ww <- fread("browser-ww-monthly-200901-201910-first.csv")[,date:=as.Date(Date)]
 ms.us <- fread("browser-us-monthly-200901-201910-first.csv")[,date:=as.Date(Date)]
-mau <- fread("Desktop_MAU_in_US_and_ROW_2019_11_22-first.csv")[,date := as.Date(date)]
-adi <- fread("adi-first.csv")[,date := as.Date(date)]
+mau <- fread("Desktop_MAU_in_US_and_ROW_2019_11_22-last.csv")[,date := as.Date(date)]
+adi <- fread("adi-mean.csv")[,date := as.Date(date)]
 # Trim these to the same dates
 # First ADI
 ms.adi <- ms.ww[date >= min(adi$date) & date <= max(adi$date)]
@@ -46,7 +56,7 @@ own telemetry and the market share data comes from StatCounter.
 Each of these is normalized to the start of the period. 
 Note that market share is declining faster than MAU.
 
-```{r eval=TRUE, echo=FALSE}
+```{r eval=TRUE, echo=TRUE}
 df <- df.ww
 
 df$size <- df$usage/df$share
@@ -57,7 +67,7 @@ df.long <- gather(df, key="Source", value="Frac", usage.normal, share.normal)
 res.ww <- df
  ```
 
-```{r eval=TRUE,fig.width=6, fig.height=4, echo=FALSE}
+```{r eval=TRUE,fig.width=6, fig.height=4, echo=TRUE}
 ggplot(df.long) + geom_line(mapping=aes(x=date, y=Frac, color=Source))
 ```
 
@@ -71,7 +81,7 @@ in either of these measurements, then it would appear that
 the market is growing.
 
 
-```{r eval=TRUE,fig.width=6, fig.height=4, echo=FALSE}
+```{r eval=TRUE,fig.width=6, fig.height=4, echo=TRUE}
 ggplot(df) + geom_line(mapping=aes(x=date, y=size))
 ```
 
@@ -81,7 +91,7 @@ ggplot(df) + geom_line(mapping=aes(x=date, y=size))
 Here is the same treatment for the US, which shows the market size
 as approximately flat at ~400 million users.
 
-```{r eval=TRUE, echo=FALSE}
+```{r eval=TRUE, echo=TRUE}
 df <- df.us
 
 df$size <- df$usage/df$share
@@ -93,11 +103,11 @@ res.us <-df
  ```
 
 
-```{r eval=TRUE,fig.width=6, fig.height=4, echo=FALSE}
+```{r eval=TRUE,fig.width=6, fig.height=4, echo=TRUE}
 ggplot(df.long) + geom_line(mapping=aes(x=date, y=Frac, color=Source))
 ```
 
-```{r eval=TRUE,fig.width=6, fig.height=4, echo=FALSE}
+```{r eval=TRUE,fig.width=6, fig.height=4, echo=TRUE}
 ggplot(df) + geom_line(mapping=aes(x=date, y=size))
 ```
 
@@ -109,7 +119,7 @@ And finally, here's the same treatment for Average Daily Installs (ADI), which i
 blocklist ping rather than on telemetry data.
 
 
-```{r eval=TRUE, echo=FALSE}
+```{r eval=TRUE, echo=TRUE}
 df <- df.adi
 
 df$size <- df$usage/df$share
@@ -121,34 +131,54 @@ res.adi <- df
  ```
 
 
-```{r eval=TRUE,fig.width=6, fig.height=4, echo=FALSE}
+```{r eval=TRUE,fig.width=6, fig.height=4, echo=TRUE}
 ggplot(df.long) + geom_line(mapping=aes(x=date, y=Frac, color=Source))
 ```
 
-```{r eval=TRUE,fig.width=6, fig.height=4, echo=FALSE}
+```{r eval=TRUE,fig.width=6, fig.height=4, echo=TRUE}
 ggplot(df) + geom_line(mapping=aes(x=date, y=size))
 ```
 
 ## Summary
 
 Finally, we can compare the each of these series by normalizing to the
-value at the beginning of the MAU series (which starts later than ADI)
+value at the beginning of the MAU series (which starts later than ADI).
+Because ADI is an unsmoothed value, we take the arithmetic mean of
+ADI for each month. As before, we attribute it to the first day of
+the month.
 
-```{r eval=TRUE, echo=FALSE}
+
+```{r eval=TRUE, echo=TRUE}
 res.ww$size.normal <- res.ww$size/res.ww$size[1]
 res.us$size.normal <- res.us$size/res.us$size[1]
 res.adi$size.normal <- res.adi$size/(res.adi[date == min(res.ww$date)]$size[1])
-res.ww$series <- "WW"
+res.ww$series <- "ww"
 res.us$series <- "us"
 res.adi$series <- "adi"
 
 res <- rbind(res.ww, res.us, res.adi)
 ```
 
-```{r eval=TRUE,fig.width=6, fig.height=4, echo=FALSE}
-ggplot(res) + geom_line(mapping=aes(x=date,y=size.normal, color=series))
+```{r eval=TRUE,fig.width=6, fig.height=4, echo=TRUE}
+ggplot(res) + geom_line(mapping=aes(x=date,y=size.normal, color=series)) + geom_smooth(mapping=aes(x=date,y=size.normal, color=series))
+
 ```
 
+It's probably a mistake to read too much into these data sets (and in
+particular the projections implied by smoothing are not reliable due
+to seasonality), but a few points are worth noting. All of this data
+generally show a market increase over the past few years (causeed by
+market share decline outpacing absolute decline), coupled with big
+spikes adound the beginning of 2019. These reflect two big negative
+spikes in market share around the same time, so may be measurement
+error in the market share estimates, and in any case will recur for
+any absolute usage series we run against these market share
+numbers. We should look to rerun this data with a different source of
+data, such as NetMarketShare.
+
+In general, this is a somewhat surprising result as we had expected
+the desktop market to be generally flat to in decline, and so more
+investigation is definitely required.
 
 
 # Sanity Check
