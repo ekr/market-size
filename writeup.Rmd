@@ -27,17 +27,17 @@ ms.ww <- ms.ww[date >= min(mau$date)]
 ms.us <- ms.us[date >= min(mau$date)]
 mau <- mau[date <= max(ms.ww$date)]
 
-df.ww <- data.table(date = ms.ww$date, mau = mau$mau_row + mau$mau_us, share = ms.ww$Firefox)
-df.us <- data.table(date = ms.us$date, mau = mau$mau_us, share = ms.us$Firefox)
+df.ww <- data.table(date = ms.ww$date, usage = mau$mau_row + mau$mau_us, share = ms.ww$Firefox)
+df.us <- data.table(date = ms.us$date, usage = mau$mau_us, share = ms.us$Firefox)
 ```
 
 ```{r eval=TRUE, echo=FALSE}
 df <- df.ww
 
-df$size <- df$mau/df$share
-df$mau.normal <- df$mau/df$mau[1]
+df$size <- df$usage/df$share
+df$usage.normal <- df$usage/df$usage[1]
 df$share.normal <- df$share/df$share[1]
-df.long <- gather(df, key="Source", value="Frac", mau.normal, share.normal)
+df.long <- gather(df, key="Source", value="Frac", usage.normal, share.normal)
  ```
 
 ## Worldwide Market Size
@@ -76,10 +76,10 @@ as approximately flat at ~400 million users.
 ```{r eval=TRUE, echo=FALSE}
 df <- df.us
 
-df$size <- df$mau/df$share
-df$mau.normal <- df$mau/df$mau[1]
+df$size <- df$usage/df$share
+df$usage.normal <- df$usage/df$usage[1]
 df$share.normal <- df$share/df$share[1]
-df.long <- gather(df, key="Source", value="Frac", mau.normal, share.normal)
+df.long <- gather(df, key="Source", value="Frac", usage.normal, share.normal)
  ```
 
 
