@@ -135,8 +135,6 @@ df$share.normal <- df$share/df$share[1]
 df.long <- gather(df, key="Source", value="Frac", usage.normal, share.normal)
 
 res.nm <- df
-print(res.nm)
-print(res.ww)
 ```
 
 
