@@ -33,18 +33,23 @@ ms.ww <- fread("browser-ww-monthly-200901-201910-first.csv")[,date:=as.Date(Date
 ms.us <- fread("browser-us-monthly-200901-201910-first.csv")[,date:=as.Date(Date)]
 mau <- fread("Desktop_MAU_in_US_and_ROW_2019_11_22-last.csv")[,date := as.Date(date)]
 adi <- fread("adi-mean.csv")[,date := as.Date(date)]
+nm.ww <- fread("netmarketshare.csv")[,date:=as.Date(date)]
+
 # Trim these to the same dates
 # First ADI
 ms.adi <- ms.ww[date >= min(adi$date) & date <= max(adi$date)]
-df.adi <- data.table(date = ms.adi$date, usage = adi$adi, share = ms.adi$Firefox)
+df.adi <- data.table(date = ms.adi$date, usage = adi$adi, share = ms.adi$Firefox/100)
 
-# Then MAU
+# Then MAU for StatCounter
 ms.ww <- ms.ww[date >= min(mau$date)]
 ms.us <- ms.us[date >= min(mau$date)]
-mau <- mau[date <= max(ms.ww$date)]
-df.ww <- data.table(date = ms.ww$date, usage = mau$mau_row + mau$mau_us, share = ms.ww$Firefox)
-df.us <- data.table(date = ms.us$date, usage = mau$mau_us, share = ms.us$Firefox)
+mau.st <- mau[date <= max(ms.ww$date)]
+df.ww <- data.table(date = ms.ww$date, usage = mau.st$mau_row + mau.st$mau_us, share = ms.ww$Firefox/100)
+df.us <- data.table(date = ms.us$date, usage = mau.st$mau_us, share = ms.us$Firefox/100)
 
+# Finally MAU for NetMarketShare
+mau.nm <- mau[date >= min(nm.ww$date)]
+df.nm <- data.table(date = nm.ww$date, usage = mau.nm$mau_row + mau.nm$mau_us, share = nm.ww$Firefox/100)
 ```
 
 
@@ -111,7 +116,27 @@ ggplot(df.long) + geom_line(mapping=aes(x=date, y=Frac, color=Source))
 ggplot(df) + geom_line(mapping=aes(x=date, y=size))
 ```
 
+## NetMarketShare
 
+```{r eval=TRUE, echo=TRUE}
+df <- df.nm
+
+df$size <- df$usage/df$share
+df$usage.normal <- df$usage/df$usage[1]
+df$share.normal <- df$share/df$share[1]
+df.long <- gather(df, key="Source", value="Frac", usage.normal, share.normal)
+
+res.nm <- df
+ ```
+
+
+```{r eval=TRUE,fig.width=6, fig.height=4, echo=TRUE}
+ggplot(df.long) + geom_line(mapping=aes(x=date, y=Frac, color=Source))
+```
+
+```{r eval=TRUE,fig.width=6, fig.height=4, echo=TRUE}
+ggplot(df) + geom_line(mapping=aes(x=date, y=size))
+```
 
 ## ADI
 
